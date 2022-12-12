@@ -2,7 +2,13 @@
 
 use crate::{DigitDisplayUnit, Nibbles};
 
-#[derive(Debug)]
+//#[derive(Debug)]
+
+const CLOCK_ROW_0_FORMAT: &str = "   {}    {}    {}    {}";
+const CLOCK_ROW_1_FORMAT: &str = "  {} {} {} {} {} {} {} {}";
+const CLOCK_ROW_2_FORMAT: &str = "   {}    {}    {}    {}";
+const CLOCK_ROW_3_FORMAT: &str = "  {} {} {} {} {} {} {} {}";
+const CLOCK_ROW_4_FORMAT: &str = "   {}    {}    {}    {}";
 
 pub struct ScreenClock {
     top_left_row: u8,
@@ -11,33 +17,89 @@ pub struct ScreenClock {
 }
 
 impl ScreenClock {
-    pub fn new(top_left_row: u8, top_left_col: u8) -> ScreenClock {
+    pub fn new( start_at_row: u8, start_at_col: u8 ) -> ScreenClock {
 
-        let digital_display_unit0 = DigitDisplayUnit::new();
-        let digital_display_unit1 = DigitDisplayUnit::new();
-        let digital_display_unit2 = DigitDisplayUnit::new();
-        let digital_display_unit3 = DigitDisplayUnit::new();
+        // From left to right, on the display panel!
+        let digital_display_unit0 = DigitDisplayUnit::new(); // m_ of mm
+        let digital_display_unit1 = DigitDisplayUnit::new(); // _m of mm
+        let digital_display_unit2 = DigitDisplayUnit::new(); // s_ of ss
+        let digital_display_unit3 = DigitDisplayUnit::new(); // _s of ss
 
         ScreenClock {
-            top_left_row,
-            top_left_col,
+            top_left_row: start_at_row,
+            top_left_col: start_at_col,
             display_units: [digital_display_unit0, digital_display_unit1, digital_display_unit2, digital_display_unit3]
         }
     }
 
-    pub fn on_next_clock_tick(&mut self, min_1: &u8, min_2: &u8, sec_1: &u8, sec_2: &u8) {
+    pub fn on_next_clock_tick(&mut self, min_1: u8, min_2: u8, sec_1: u8, sec_2: u8)  -> &mut ScreenClock {
 
-          let mins_and_secs_arrayfied: [&u8;4] = [min_1,min_2,sec_1,sec_2];
-
+          let mins_and_secs_arrayfied: [u8;4] = [min_1,min_2,sec_1,sec_2];
+          for i in 0..4 {
+              self.display_units[i].on_arrival_of_next_signal(&Nibbles(mins_and_secs_arrayfied[i]));
+          }
+          self
 
     }
 
-    fn convert_to_nibbles(digits_in_clock_tick:&[u8;4]) -> Nibbles {
-        let mm_and_ss = digits_in_clock_tick.map(|d| d - '0' as u8);
-        Nibbles (mm_and_ss[0],mm_and_ss[1],mm_and_ss[2],mm_and_ss[3])
+    pub fn refresh(&self) -> &ScreenClock {
+
+        let all_columns_of_row = self.prepare_clock_for_display();
+        // for i in 0..5 {
+        //     println!("{}",all_rows[i]);
+        // }
+        //print!("{},{},{}",12,35,31);
+        print!("\x1b[{};{}H\x1b[1;33m{}", self.top_left_row,   self.top_left_col, all_columns_of_row[0]);
+        print!("\x1b[{};{}H\x1b[1;33m{}", self.top_left_row+1, self.top_left_col, all_columns_of_row[1]);
+        print!("\x1b[{};{}H\x1b[1;33m{}", self.top_left_row+2, self.top_left_col, all_columns_of_row[2]);
+        print!("\x1b[{};{}H\x1b[1;33m{}", self.top_left_row+3, self.top_left_col, all_columns_of_row[3]);
+        print!("\x1b[{};{}H\x1b[1;33m{}", self.top_left_row+4, self.top_left_col, all_columns_of_row[4]);
+
+        self
     }
 
-    fn digit_to_nibbles(digit: &u8) -> Nibbles {
-        panic!()
+    fn prepare_clock_for_display(&self) -> [String; 5] {
+
+        // @TODO: Explore StrFmt library, to replace hard-coded formatters, below!
+        let formatted_row_0 = format!(" {}  {}   {}  {}",
+                                      self.display_units[0].get_led_a(),
+                                      self.display_units[1].get_led_a(),
+                                      self.display_units[2].get_led_a(),
+                                      self.display_units[3].get_led_a()
+        );
+
+        let formatted_row_1 = format!(" {}{}  {}{} o {}{}  {}{}",
+                                      self.display_units[0].get_led_f(),self.display_units[0].get_led_b(),
+                                      self.display_units[1].get_led_f(),self.display_units[1].get_led_b(),
+                                      self.display_units[2].get_led_f(),self.display_units[2].get_led_b(),
+                                      self.display_units[3].get_led_f(),self.display_units[3].get_led_b()
+        );
+
+        let formatted_row_2 = format!(" {}  {}   {}  {}",
+                                      self.display_units[0].get_led_g(),
+                                      self.display_units[1].get_led_g(),
+                                      self.display_units[2].get_led_g(),
+                                      self.display_units[3].get_led_g()
+        );
+
+        let formatted_row_3 = format!(" {}{}  {}{} o {}{}  {}{}",
+                                      self.display_units[0].get_led_e(),self.display_units[0].get_led_c(),
+                                      self.display_units[1].get_led_e(),self.display_units[1].get_led_c(),
+                                      self.display_units[2].get_led_e(),self.display_units[2].get_led_c(),
+                                      self.display_units[3].get_led_e(),self.display_units[3].get_led_c()
+        );
+
+        let formatted_row_4 = format!(" {}  {}   {}  {}",
+                                      self.display_units[0].get_led_d(),
+                                      self.display_units[1].get_led_d(),
+                                      self.display_units[2].get_led_d(),
+                                      self.display_units[3].get_led_d()
+        );
+
+        let row_holder: [String; 5] = [formatted_row_0,formatted_row_1,formatted_row_2,formatted_row_3,formatted_row_4];
+
+        row_holder
     }
+
 }
+

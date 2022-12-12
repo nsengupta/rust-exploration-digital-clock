@@ -1,11 +1,91 @@
 #![allow(non_snake_case)]
 
 use crate::LedRepresentation::Led;
-pub struct Nibbles(pub u8, pub u8, pub u8, pub u8);
+pub struct Nibbles(pub u8);
 
 // https://www.electricaltechnology.org/2018/05/bcd-to-7-segment-display-decoder.html
 
-#[derive(Debug)]
+//#[derive(Debug)]
+
+const LED_A_GATE_LOGIC: fn(&u8) -> bool = | input: &u8 | {
+    // 8-bits and BCD (MSB is leftmost)
+    // 0       0       0       0       A       B      C      D
+    // Using karnaugh Map and don't care conditions: A + C + B.D + ~B.~D
+
+    (input & 0b00001000 == 0x08)              // *nibble_a == 1u8
+        || (input & 0b00000010 == 0x02)       // *nibble_c == 1u8
+        || (input & 0b00000101 == 0x05)       // (*nibble_b == 1u8 && *nibble_d == 1u8)
+        || (input & 0b00000101 ==  0x00) // (*nibble_b == 0u8 && *nibble_d == 0u8)
+};
+
+const LED_B_GATE_LOGIC: fn(&u8) -> bool = | input: &u8 | {
+    // 8-bits and BCD (MSB is leftmost)
+    // 0       0       0       0       A       B      C      D
+    // Using karnaugh Map and don't care conditions: ~B + ~C~D + CD
+
+    (input & 0b00000100 == 0x00)  // *nibble_b == 0u8
+        || (input & 0b00000011 == 0x00) //(*nibble_c == 0u8 && *nibble_d == 0u8)
+        || (input & 0b00000011 == 0x03) // (*nibble_c == 1u8 && *nibble_d == 1u8)
+
+};
+
+const LED_C_GATE_LOGIC: fn(&u8) -> bool = | input: &u8 | {
+    // 8-bits and BCD (MSB is leftmost)
+    // 0       0       0       0       A       B      C      D
+    // Using karnaugh Map and don't care conditions: B + ~C + D
+
+    (input & 0b00000100 == 0x04) // (*nibble_b == 1u8
+      || (input & 0b00000010 == 0x00) // *nibble_c == 0u8
+      || (input & 0b00000001 == 0x01) // *nibble_d == 1u8)
+
+};
+
+const LED_D_GATE_LOGIC: fn(&u8) -> bool = | input: &u8 | {
+    // 8-bits and BCD (MSB is leftmost)
+    // 0       0       0       0       A       B      C      D
+    // Using karnaugh Map and don't care conditions: A + ~B~D + ~BC + C~D + B~CD
+
+    (input & 0b00001000 == 0x08) // *nibble_a == 1u8
+        || (input & 0b00000101 == 0x00) // (*nibble_b == 0u8 && *nibble_d == 0u8)
+        || (input & 0b00000110 == 0x02) // (*nibble_b == 0u8 && *nibble_c == 1u8)
+        || (input & 0b00000011 == 0x02) // (*nibble_c == 1u8 && *nibble_d == 0u8)
+        || (input & 0b00000111 == 0x05) // (*nibble_b == 1u8 && *nibble_c == 0u8 && *nibble_d == 1u8)
+
+};
+
+const LED_E_GATE_LOGIC: fn(&u8) -> bool = | input: &u8 | {
+    // 8-bits and BCD (MSB is leftmost)
+    // 0       0       0       0       A       B      C      D
+    // Using karnaugh Map and don't care conditions: ~B~D + C~D
+
+    (input & 0b00000101 == 0x00) // (*nibble_b == 0u8 && *nibble_d == 0u8)
+        || (input & 0b00000011 == 0x02) // (*nibble_c == 1u8 && *nibble_d == 0u8)
+
+};
+
+const LED_F_GATE_LOGIC: fn(&u8) -> bool = | input: &u8 | {
+    // 8-bits and BCD (MSB is leftmost)
+    // 0       0       0       0       A       B      C      D
+    // Using karnaugh Map and don't care conditions: A + B~C + B~D + ~C~D
+
+    (input & 0b00001000 == 0x08) // *nibble_a == 1u8
+        || (input & 0b00000110 == 0x04) // (*nibble_b == 1u8 && *nibble_c == 0u8)
+        || (input & 0b00000101 == 0x04) // (*nibble_b == 1u8 && *nibble_d == 0u8)
+        || (input & 0b00000011 == 0x00) // (*nibble_c == 0u8 && *nibble_d == 0u8)
+
+};
+
+const LED_G_GATE_LOGIC: fn(&u8) -> bool = | input: &u8 | {
+    // 8-bits and BCD (MSB is leftmost)
+    // 0       0       0       0       A       B      C      D
+    // Using karnaugh Map and don't care conditions: A + B~C + ~BC + C~D
+
+    (input & 0b00001000 == 0x08) // *nibble_a == 1u8
+        || (input & 0b00000110 == 0x04) // (*nibble_b == 1u8 && *nibble_c == 0u8)
+        || (input & 0b00000110 == 0x02) // (*nibble_b == 0u8 && *nibble_c == 1u8)
+        || (input & 0b00000011 == 0x02) // (*nibble_c == 1u8 && *nibble_d == 0u8)
+
+};
 
 pub struct DigitDisplayUnit {
     // TODO: These leds should be in a map, identifiable  by the letter associated
@@ -20,13 +100,13 @@ pub struct DigitDisplayUnit {
 
 impl DigitDisplayUnit {
     pub fn new() -> DigitDisplayUnit {
-        let leda = Led::new("a", "┏━┓", 0i8, 1i8);
-        let ledb = Led::new("b", "┃", 1i8, 3i8);
-        let ledc = Led::new("c", "┃", 3i8, 3i8);
-        let ledd = Led::new("d", "┗━┛", 4i8, 1i8);
-        let lede = Led::new("e", "┃", 3i8, 1i8);
-        let ledf = Led::new("f", "┃", 1i8, 1i8);
-        let ledg = Led::new("g", "┣━┫", 2i8, 1i8);
+        let leda = Led::new("a", "━━━━", "    ", 0i8, 1i8, LED_A_GATE_LOGIC);
+        let ledb = Led::new("b", " ┃", "  ", 1i8, 3i8, LED_B_GATE_LOGIC);
+        let ledc = Led::new("c", " ┃", "  ", 3i8, 3i8, LED_C_GATE_LOGIC);
+        let ledd = Led::new("d", "━━━━", "    ", 4i8, 1i8, LED_D_GATE_LOGIC);
+        let lede = Led::new("e", "┃ ", "  ", 3i8, 1i8, LED_E_GATE_LOGIC);
+        let ledf = Led::new("f", "┃ ", "  ", 1i8, 1i8, LED_F_GATE_LOGIC);
+        let ledg = Led::new("g", "━━━━", "    ", 2i8, 1i8, LED_G_GATE_LOGIC);
 
         DigitDisplayUnit {
             led_a: leda,
@@ -62,91 +142,47 @@ impl DigitDisplayUnit {
 
     }
 
-    pub fn on_arrival_of_next_signal(&mut self, nibbles: &Nibbles) -> () {
-        let Nibbles(nibble_a, nibble_b, nibble_c, nibble_d) = nibbles;
+    pub fn on_arrival_of_next_signal(&mut self, nibbles_of_BCD: &Nibbles) -> () {
 
-        if DigitDisplayUnit::should_be_lit_led_a(&nibble_a, &nibble_b, &nibble_c, &nibble_d) {
-            self.led_a.switch_on()
-        };
-        if DigitDisplayUnit::should_be_lit_led_b(&nibble_a, &nibble_b, &nibble_c, &nibble_d) {
-            self.led_b.switch_on()
-        };
-        if DigitDisplayUnit::should_be_lit_led_c(&nibble_a, &nibble_b, &nibble_c, &nibble_d) {
-            self.led_c.switch_on()
-        };
-        if DigitDisplayUnit::should_be_lit_led_d(&nibble_a, &nibble_b, &nibble_c, &nibble_d) {
-            self.led_d.switch_on()
-        };
-        if DigitDisplayUnit::should_be_lit_led_e(&nibble_a, &nibble_b, &nibble_c, &nibble_d) {
-            self.led_e.switch_on()
-        };
-        if DigitDisplayUnit::should_be_lit_led_f(&nibble_a, &nibble_b, &nibble_c, &nibble_d) {
-            self.led_f.switch_on()
-        };
-        if DigitDisplayUnit::should_be_lit_led_g(&nibble_a, &nibble_b, &nibble_c, &nibble_d) {
-            self.led_g.switch_on()
-        };
+        self.led_a.flip_led(&nibbles_of_BCD.0);
+        self.led_b.flip_led(&nibbles_of_BCD.0);
+        self.led_c.flip_led(&nibbles_of_BCD.0);
+        self.led_d.flip_led(&nibbles_of_BCD.0);
+        self.led_e.flip_led(&nibbles_of_BCD.0);
+        self.led_f.flip_led(&nibbles_of_BCD.0);
+        self.led_g.flip_led(&nibbles_of_BCD.0);
 
         ()
     }
 
-    fn should_be_lit_led_a(nibble_a: &u8, nibble_b: &u8, nibble_c: &u8, nibble_d: &u8) -> bool {
-        // Using karnaugh Map and don't care conditions: A + C + BD + ~B~D
-
-        *nibble_a == 1u8
-            || *nibble_c == 1u8
-            || (*nibble_b == 1u8 && *nibble_d == 1u8)
-            || (*nibble_b == 0u8 && *nibble_d == 0u8)
+    pub fn get_led_a(&self) -> &str {
+        self.led_a.how_to_display()
     }
 
-    fn should_be_lit_led_b(nibble_a: &u8, nibble_b: &u8, nibble_c: &u8, nibble_d: &u8) -> bool {
-        // Using karnaugh Map and don't care conditions: ~B + ~C~D + CD
-
-        *nibble_b == 0u8
-            || (*nibble_c == 0u8 && *nibble_d == 0u8)
-            || (*nibble_c == 1u8 && *nibble_d == 1u8)
-
+    pub fn get_led_b(&self) -> &str {
+        self.led_b.how_to_display()
     }
 
-    fn should_be_lit_led_c(nibble_a: &u8, nibble_b: &u8, nibble_c: &u8, nibble_d: &u8) -> bool {
-        // Using karnaugh Map and don't care conditions: B + ~C + D
-
-        (*nibble_b == 1u8 || *nibble_c == 0u8 || *nibble_d == 1u8)
+    pub fn get_led_c(&self) -> &str {
+        self.led_c.how_to_display()
     }
 
-    fn should_be_lit_led_d(nibble_a: &u8, nibble_b: &u8, nibble_c: &u8, nibble_d: &u8) -> bool {
-        // Using karnaugh Map and don't care conditions: A + ~B~D + ~BC + C~D + B~CD
-
-        *nibble_a == 1u8
-            || (*nibble_b == 0u8 && *nibble_d == 0u8)
-            || (*nibble_b == 0u8 && *nibble_c == 1u8)
-            || (*nibble_c == 1u8 && *nibble_d == 0u8)
-            || (*nibble_b == 1u8 && *nibble_c == 0u8 && *nibble_d == 1u8)
+    pub fn get_led_d(&self) -> &str {
+        self.led_d.how_to_display()
     }
 
-    fn should_be_lit_led_e(nibble_a: &u8, nibble_b: &u8, nibble_c: &u8, nibble_d: &u8) -> bool {
-        // Using karnaugh Map and don't care conditions: ~B~D + C~D
-
-        (*nibble_b == 0u8 && *nibble_d == 0u8) || (*nibble_c == 1u8 && *nibble_d == 0u8)
+    pub fn get_led_e(&self) -> &str {
+        self.led_e.how_to_display()
     }
 
-    fn should_be_lit_led_f(nibble_a: &u8, nibble_b: &u8, nibble_c: &u8, nibble_d: &u8) -> bool {
-        // Using karnaugh Map and don't care conditions: A + B~C + B~D + ~C~D
-
-        *nibble_a == 1u8
-            || (*nibble_b == 1u8 && *nibble_c == 0u8)
-            || (*nibble_b == 1u8 && *nibble_d == 0u8)
-            || (*nibble_c == 0u8 && *nibble_d == 0u8)
+    pub fn get_led_f(&self) -> &str {
+        self.led_f.how_to_display()
     }
 
-    fn should_be_lit_led_g(nibble_a: &u8, nibble_b: &u8, nibble_c: &u8, nibble_d: &u8) -> bool {
-        // Using karnaugh Map and don't care conditions: A + B~C + ~BC + C~D
-
-        *nibble_a == 1u8
-            || (*nibble_b == 1u8 && *nibble_c == 0u8)
-            || (*nibble_b == 0u8 && *nibble_c == 1u8)
-            || (*nibble_c == 1u8 && *nibble_d == 0u8)
+    pub fn get_led_g(&self) -> &str {
+        self.led_g.how_to_display()
     }
+
 }
 
 #[cfg(test)]
@@ -168,7 +204,7 @@ mod tests {
                 && !digital_display_unit.led_g.isOn(),
             true
         );
-        let nibbles = Nibbles(0, 0, 0, 0);
+        let nibbles = Nibbles(0u8);
         digital_display_unit.on_arrival_of_next_signal(&nibbles);
 
         // assert_eq!(DigitDisplayUnit::should_be_lit_led_g(&nibbles.0,&nibbles.1,&nibbles.2,&nibbles.3),false);
@@ -187,7 +223,7 @@ mod tests {
     #[test]
     fn on_receiving_signal_for_digit_0() -> () {
         let mut digital_display_unit = DigitDisplayUnit::new();
-        let nibbles = generate_signal_for_given_digit(0);
+        let nibbles = Nibbles(0u8);
         digital_display_unit.on_arrival_of_next_signal(&nibbles);
         assert_eq!(is_digit_0_displayable(&digital_display_unit),true);
     }
@@ -195,7 +231,7 @@ mod tests {
     #[test]
     fn on_receiving_signal_for_digit_1() -> () {
         let mut digital_display_unit = DigitDisplayUnit::new();
-        let nibbles = generate_signal_for_given_digit(1);
+        let nibbles = Nibbles(1u8);
         digital_display_unit.on_arrival_of_next_signal(&nibbles);
         assert_eq!(is_digit_1_displayable(&digital_display_unit),true);
     }
@@ -203,7 +239,7 @@ mod tests {
     #[test]
     fn on_receiving_signal_for_digit_2() -> () {
         let mut digital_display_unit = DigitDisplayUnit::new();
-        let nibbles = generate_signal_for_given_digit(2);
+        let nibbles = Nibbles(2u8);
         digital_display_unit.on_arrival_of_next_signal(&nibbles);
         assert_eq!(is_digit_2_displayable(&digital_display_unit),true);
     }
@@ -211,7 +247,7 @@ mod tests {
     #[test]
     fn on_receiving_signal_for_digit_3() -> () {
         let mut digital_display_unit = DigitDisplayUnit::new();
-        let nibbles = generate_signal_for_given_digit(3);
+        let nibbles = Nibbles(3u8);
         digital_display_unit.on_arrival_of_next_signal(&nibbles);
         assert_eq!(is_digit_3_displayable(&digital_display_unit),true);
     }
@@ -219,7 +255,7 @@ mod tests {
     #[test]
     fn on_receiving_signal_for_digit_4() -> () {
         let mut digital_display_unit = DigitDisplayUnit::new();
-        let nibbles = generate_signal_for_given_digit(4);
+        let nibbles = Nibbles(4u8);
         digital_display_unit.on_arrival_of_next_signal(&nibbles);
         assert_eq!(is_digit_4_displayable(&digital_display_unit),true);
     }
@@ -227,7 +263,7 @@ mod tests {
     #[test]
     fn on_receiving_signal_for_digit_5() -> () {
         let mut digital_display_unit = DigitDisplayUnit::new();
-        let nibbles = generate_signal_for_given_digit(5);
+        let nibbles = Nibbles(5u8);
         digital_display_unit.on_arrival_of_next_signal(&nibbles);
         assert_eq!(is_digit_5_displayable(&digital_display_unit),true);
     }
@@ -235,7 +271,7 @@ mod tests {
     #[test]
     fn on_receiving_signal_for_digit_6() -> () {
         let mut digital_display_unit = DigitDisplayUnit::new();
-        let nibbles = generate_signal_for_given_digit(6);
+        let nibbles = Nibbles(6u8);
         digital_display_unit.on_arrival_of_next_signal(&nibbles);
         assert_eq!(is_digit_6_displayable(&digital_display_unit),true);
     }
@@ -243,7 +279,7 @@ mod tests {
     #[test]
     fn on_receiving_signal_for_digit_7() -> () {
         let mut digital_display_unit = DigitDisplayUnit::new();
-        let nibbles = generate_signal_for_given_digit(7);
+        let nibbles = Nibbles(7u8);
         digital_display_unit.on_arrival_of_next_signal(&nibbles);
         assert_eq!(is_digit_7_displayable(&digital_display_unit),true);
     }
@@ -251,7 +287,7 @@ mod tests {
     #[test]
     fn on_receiving_signal_for_digit_8() -> () {
         let mut digital_display_unit = DigitDisplayUnit::new();
-        let nibbles = generate_signal_for_given_digit(8);
+        let nibbles = Nibbles(8u8);
         digital_display_unit.on_arrival_of_next_signal(&nibbles);
         assert_eq!(is_digit_8_displayable(&digital_display_unit),true);
     }
@@ -259,7 +295,7 @@ mod tests {
     #[test]
     fn on_receiving_signal_for_digit_9() -> () {
         let mut digital_display_unit = DigitDisplayUnit::new();
-        let nibbles = generate_signal_for_given_digit(9);
+        let nibbles = Nibbles(9u8);
         digital_display_unit.on_arrival_of_next_signal(&nibbles);
         assert_eq!(is_digit_9_displayable(&digital_display_unit),true);
     }
@@ -344,6 +380,15 @@ mod tests {
 
     fn is_digit_7_displayable(digital_display_unit: &DigitDisplayUnit) -> bool {
         // 1110000
+        /*println!("BCD {:b}",7u8);
+
+        println!("a: {}", digital_display_unit.led_a.isOn());
+            println!("b: {}",  digital_display_unit.led_b.isOn());
+            println!("c: {}",  digital_display_unit.led_c.isOn());
+            println!("d: {}",  digital_display_unit.led_d.isOn());
+            println!("e: {}",  digital_display_unit.led_e.isOn());
+            println!("f: {}",  digital_display_unit.led_f.isOn());
+            println!("g: {}",  digital_display_unit.led_g.isOn());*/
 
         digital_display_unit.led_a.isOn()
             && digital_display_unit.led_b.isOn()
@@ -376,22 +421,5 @@ mod tests {
             && !digital_display_unit.led_e.isOn()
             && digital_display_unit.led_f.isOn()
             && digital_display_unit.led_g.isOn()
-    }
-
-    fn generate_signal_for_given_digit(d: i8) -> Nibbles {
-
-        match d {
-            0 => Nibbles(0,0,0,0),
-            1 => Nibbles(0,0,0,1),
-            2 => Nibbles(0,0,1,0),
-            3 => Nibbles(0,0,1,1),
-            4 => Nibbles(0,1,0,0),
-            5 => Nibbles(0,1,0,1),
-            6 => Nibbles(0,1,1,0),
-            7 => Nibbles(0,1,1,1),
-            8 => Nibbles(1,0,0,0),
-            9 => Nibbles(1,0,0,1),
-            _ => Nibbles(1,1,1,1),
-        }
     }
 }
