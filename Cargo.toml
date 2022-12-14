@@ -7,3 +7,5 @@ edition = "2021"
 
 [dependencies]
 chrono = "0.4"
+ctrlc = "3.2.4"
+crossbeam = "0.5"

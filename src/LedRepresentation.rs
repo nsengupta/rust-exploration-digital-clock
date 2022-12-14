@@ -7,19 +7,15 @@ pub struct Led {
     show_character: String,
     hide_character: String ,
     light_status: bool,
-    rowFromOrigin: i8, // row position relative to a top-left corner position for display
-    colFromOrigin: i8, // col position relative to a top-left corner position for display
     on_receiving_next_signal: fn(&u8) -> bool // Closure that evaluates a BCD-signal, before deciding what the light_status should become
 }
 impl Led {
-    pub fn new(name: &str, displayChar: &str, hide_character: &str, rowFromOrigin: i8, colFromOrigin: i8, evaluator: fn(&u8) -> bool) -> Led {
+    pub fn new(name: &str, displayChar: &str, hide_character: &str, evaluator: fn(&u8) -> bool) -> Led {
         Led {
             name: name.to_string(),
             show_character: displayChar.to_string(),
             hide_character: hide_character.to_string(),
             light_status: false,
-            rowFromOrigin,
-            colFromOrigin,
             on_receiving_next_signal: evaluator
         }
     }
@@ -31,14 +27,14 @@ impl Led {
             { self.light_status = false; }
     }
 
-    pub fn isOn(&self) -> bool {
+   /* pub fn isOn(&self) -> bool {
         self.light_status == true
-    }
+    }*/
 
-    pub fn display_location(&self) -> (u8, u8, &str) {
-        let what_to_show = if !self.light_status { &self.hide_character } else { &self.show_character};
+    /*pub fn display_location(&self) -> (u8, u8, &str) {
+        let what_to_show = if !&self.light_status { &self.hide_character } else { &self.show_character};
         (self.rowFromOrigin as u8, self.colFromOrigin as u8, what_to_show.as_str())
-    }
+    }*/
 
     pub fn how_to_display(&self) -> &str {
         if self.light_status == true { &self.show_character } else { &self.hide_character }

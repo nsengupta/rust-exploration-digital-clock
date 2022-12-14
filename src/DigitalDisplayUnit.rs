@@ -8,18 +8,18 @@ pub struct Nibbles(pub u8);
 //#[derive(Debug)]
 
 const LED_A_GATE_LOGIC: fn(&u8) -> bool = | input: &u8 | {
-    // 8-bits and BCD (MSB is leftmost)
+    // 8-bits and BCD (MSBs start from leftmost)
     // 0       0       0       0       A       B      C      D
     // Using karnaugh Map and don't care conditions: A + C + B.D + ~B.~D
 
     (input & 0b00001000 == 0x08)              // *nibble_a == 1u8
         || (input & 0b00000010 == 0x02)       // *nibble_c == 1u8
         || (input & 0b00000101 == 0x05)       // (*nibble_b == 1u8 && *nibble_d == 1u8)
-        || (input & 0b00000101 ==  0x00) // (*nibble_b == 0u8 && *nibble_d == 0u8)
+        || (input & 0b00000101 ==  0x00)      // (*nibble_b == 0u8 && *nibble_d == 0u8)
 };
 
 const LED_B_GATE_LOGIC: fn(&u8) -> bool = | input: &u8 | {
-    // 8-bits and BCD (MSB is leftmost)
+    // 8-bits and BCD (MSBs start from leftmost)
     // 0       0       0       0       A       B      C      D
     // Using karnaugh Map and don't care conditions: ~B + ~C~D + CD
 
@@ -30,7 +30,7 @@ const LED_B_GATE_LOGIC: fn(&u8) -> bool = | input: &u8 | {
 };
 
 const LED_C_GATE_LOGIC: fn(&u8) -> bool = | input: &u8 | {
-    // 8-bits and BCD (MSB is leftmost)
+    // 8-bits and BCD (MSBs start from leftmost)
     // 0       0       0       0       A       B      C      D
     // Using karnaugh Map and don't care conditions: B + ~C + D
 
@@ -41,7 +41,7 @@ const LED_C_GATE_LOGIC: fn(&u8) -> bool = | input: &u8 | {
 };
 
 const LED_D_GATE_LOGIC: fn(&u8) -> bool = | input: &u8 | {
-    // 8-bits and BCD (MSB is leftmost)
+    // 8-bits and BCD (MSBs start from leftmost)
     // 0       0       0       0       A       B      C      D
     // Using karnaugh Map and don't care conditions: A + ~B~D + ~BC + C~D + B~CD
 
@@ -54,7 +54,7 @@ const LED_D_GATE_LOGIC: fn(&u8) -> bool = | input: &u8 | {
 };
 
 const LED_E_GATE_LOGIC: fn(&u8) -> bool = | input: &u8 | {
-    // 8-bits and BCD (MSB is leftmost)
+    // 8-bits and BCD (MSBs start from leftmost)
     // 0       0       0       0       A       B      C      D
     // Using karnaugh Map and don't care conditions: ~B~D + C~D
 
@@ -64,7 +64,7 @@ const LED_E_GATE_LOGIC: fn(&u8) -> bool = | input: &u8 | {
 };
 
 const LED_F_GATE_LOGIC: fn(&u8) -> bool = | input: &u8 | {
-    // 8-bits and BCD (MSB is leftmost)
+    // 8-bits and BCD (MSBs start from leftmost)
     // 0       0       0       0       A       B      C      D
     // Using karnaugh Map and don't care conditions: A + B~C + B~D + ~C~D
 
@@ -76,7 +76,7 @@ const LED_F_GATE_LOGIC: fn(&u8) -> bool = | input: &u8 | {
 };
 
 const LED_G_GATE_LOGIC: fn(&u8) -> bool = | input: &u8 | {
-    // 8-bits and BCD (MSB is leftmost)
+    // 8-bits and BCD (MSBs start from leftmost)
     // 0       0       0       0       A       B      C      D
     // Using karnaugh Map and don't care conditions: A + B~C + ~BC + C~D
 
@@ -100,13 +100,13 @@ pub struct DigitDisplayUnit {
 
 impl DigitDisplayUnit {
     pub fn new() -> DigitDisplayUnit {
-        let leda = Led::new("a", "━━━━", "    ", 0i8, 1i8, LED_A_GATE_LOGIC);
-        let ledb = Led::new("b", " ┃", "  ", 1i8, 3i8, LED_B_GATE_LOGIC);
-        let ledc = Led::new("c", " ┃", "  ", 3i8, 3i8, LED_C_GATE_LOGIC);
-        let ledd = Led::new("d", "━━━━", "    ", 4i8, 1i8, LED_D_GATE_LOGIC);
-        let lede = Led::new("e", "┃ ", "  ", 3i8, 1i8, LED_E_GATE_LOGIC);
-        let ledf = Led::new("f", "┃ ", "  ", 1i8, 1i8, LED_F_GATE_LOGIC);
-        let ledg = Led::new("g", "━━━━", "    ", 2i8, 1i8, LED_G_GATE_LOGIC);
+        let leda = Led::new("a", "━━━━", "    ", LED_A_GATE_LOGIC);
+        let ledb = Led::new("b", " ┃", "  ",     LED_B_GATE_LOGIC);
+        let ledc = Led::new("c", " ┃", "  ",     LED_C_GATE_LOGIC);
+        let ledd = Led::new("d", "━━━━", "    ", LED_D_GATE_LOGIC);
+        let lede = Led::new("e", "┃ ", "  ",     LED_E_GATE_LOGIC);
+        let ledf = Led::new("f", "┃ ", "  ",     LED_F_GATE_LOGIC);
+        let ledg = Led::new("g", "━━━━", "    ", LED_G_GATE_LOGIC);
 
         DigitDisplayUnit {
             led_a: leda,
@@ -119,7 +119,7 @@ impl DigitDisplayUnit {
         }
     }
 
-    pub fn show(&self, row_origin: u8, col_origin: u8) -> () {
+   /* pub fn show(&self, row_origin: u8, col_origin: u8) -> () {
 
        // print!("\x1b")
 
@@ -140,7 +140,7 @@ impl DigitDisplayUnit {
         print!("\x1b[{};{}H\x1b[{}m{}", (row_origin + led_f_color_and_position_and_character.1.0) ,(col_origin + led_f_color_and_position_and_character.1.1), led_f_color_and_position_and_character.0, led_f_color_and_position_and_character.1.2);
         print!("\x1b[{};{}H\x1b[{}m{}", (row_origin + led_g_color_and_position_and_character.1.0) ,(col_origin + led_g_color_and_position_and_character.1.1), led_g_color_and_position_and_character.0, led_g_color_and_position_and_character.1.2);
 
-    }
+    }*/
 
     pub fn on_arrival_of_next_signal(&mut self, nibbles_of_BCD: &Nibbles) -> () {
 
