@@ -1,3 +1,5 @@
+TODO: Elaborate the program and data structure
+
 https://www.101computing.net/bcd-to-7-segment-display/
 
 https://www.electrical4u.com/bcd-to-seven-segment-decoder/
