@@ -27,7 +27,7 @@ pub fn main() {
         select! {
             recv(notification_on_next_second) -> _ => {
                 let time = read_clock_now()      // Current HH:MM:SS as a string
-                .chars()                         // Hold an iterator of characters it contains
+                .chars()                         // An iterator of characters it contains
                 .filter( | c  | c != &':')       // Scrape the ':' character from the middle
                 .map(| c | c as u8 - '0' as u8)  // Get the numeric digit from ascii digit
                 .collect();
@@ -56,7 +56,7 @@ pub fn main() {
 }
 
 fn notify_me_when_user_exits() -> Result<Receiver<u8>, ctrlc::Error> {
-    let (sender, receiver) =  bounded(8);
+    let (sender, receiver) =  bounded(8); // 8 is arbitrarily chosen, could be 1
     ctrlc::set_handler(move || {
         print!("\x1b[?25h");  // Restore the hidden cursor!
         let _ = sender.send(0xFF);
@@ -66,7 +66,6 @@ fn notify_me_when_user_exits() -> Result<Receiver<u8>, ctrlc::Error> {
 }
 
 fn read_clock_now() -> String {
-    //std::thread::sleep(std::time::Duration::from_millis(99));
     let t = Local::now();
     let time_now = t.format("%H:%M:%S").to_string();
     time_now

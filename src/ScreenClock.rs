@@ -58,10 +58,10 @@ impl ScreenClock {
         let all_columns_of_row = self.prepare_clock_for_display();
 
         print!("\x1b[{};{}H\x1b[1;33m{}", &self.top_left_row ,   &self.top_left_col , &all_columns_of_row[0]);
-        print!("\x1b[{};{}H\x1b[1;33m{}", self.top_left_row +1, self.top_left_col, all_columns_of_row[1]);
-        print!("\x1b[{};{}H\x1b[1;33m{}", self.top_left_row +2, self.top_left_col, all_columns_of_row[2]);
-        print!("\x1b[{};{}H\x1b[1;33m{}", self.top_left_row +3, self.top_left_col, all_columns_of_row[3]);
-        print!("\x1b[{};{}H\x1b[1;33m{}", self.top_left_row +4, self.top_left_col, all_columns_of_row[4]);
+        print!("\x1b[{};{}H\x1b[1;33m{}", &self.top_left_row +1, &self.top_left_col, all_columns_of_row[1]);
+        print!("\x1b[{};{}H\x1b[1;33m{}", &self.top_left_row +2, &self.top_left_col, all_columns_of_row[2]);
+        print!("\x1b[{};{}H\x1b[1;33m{}", &self.top_left_row +3, &self.top_left_col, all_columns_of_row[3]);
+        print!("\x1b[{};{}H\x1b[1;33m{}", &self.top_left_row +4, &self.top_left_col, all_columns_of_row[4]);
 
         self
     }

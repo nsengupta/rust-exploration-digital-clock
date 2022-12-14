@@ -119,29 +119,6 @@ impl DigitDisplayUnit {
         }
     }
 
-   /* pub fn show(&self, row_origin: u8, col_origin: u8) -> () {
-
-       // print!("\x1b")
-
-        let led_a_color_and_position_and_character = if self.led_a.isOn() { (31 /* ANSI Red */,self.led_a.display_location()) } else { (39 /* ANSI Default */,self.led_a.display_location()) };
-        let led_b_color_and_position_and_character = if self.led_b.isOn() { (31 /* ANSI Red */,self.led_b.display_location()) } else { (39 /* ANSI Default */,self.led_b.display_location()) };
-        let led_c_color_and_position_and_character = if self.led_c.isOn() { (31 /* ANSI Red */,self.led_c.display_location()) } else { (39 /* ANSI Default */,self.led_c.display_location()) };
-        let led_d_color_and_position_and_character = if self.led_d.isOn() { (31 /* ANSI Red */,self.led_d.display_location()) } else { (39 /* ANSI Default */,self.led_d.display_location()) };
-        let led_e_color_and_position_and_character = if self.led_e.isOn() { (31 /* ANSI Red */,self.led_e.display_location()) } else { (39 /* ANSI Default */,self.led_e.display_location()) };
-        let led_f_color_and_position_and_character = if self.led_f.isOn() { (31 /* ANSI Red */,self.led_f.display_location()) } else { (39 /* ANSI Default */,self.led_f.display_location()) };
-        let led_g_color_and_position_and_character = if self.led_g.isOn() { (31 /* ANSI Red */,self.led_g.display_location()) } else { (39 /* ANSI Default */,self.led_g.display_location()) };
-
-        //  \x1b[1;31mHello,World!\x1b[22;39mNo More bright Red.
-        print!("\x1b[{};{}H\x1b[{}m{}", (row_origin + led_a_color_and_position_and_character.1.0) ,(col_origin + led_a_color_and_position_and_character.1.1), led_a_color_and_position_and_character.0, led_a_color_and_position_and_character.1.2);
-        print!("\x1b[{};{}H\x1b[{}m{}", (row_origin + led_b_color_and_position_and_character.1.0) ,(col_origin + led_b_color_and_position_and_character.1.1), led_b_color_and_position_and_character.0, led_b_color_and_position_and_character.1.2);
-        print!("\x1b[{};{}H\x1b[{}m{}", (row_origin + led_c_color_and_position_and_character.1.0) ,(col_origin + led_c_color_and_position_and_character.1.1), led_c_color_and_position_and_character.0, led_c_color_and_position_and_character.1.2);
-        print!("\x1b[{};{}H\x1b[{}m{}", (row_origin + led_d_color_and_position_and_character.1.0) ,(col_origin + led_d_color_and_position_and_character.1.1), led_d_color_and_position_and_character.0, led_d_color_and_position_and_character.1.2);
-        print!("\x1b[{};{}H\x1b[{}m{}", (row_origin + led_e_color_and_position_and_character.1.0) ,(col_origin + led_e_color_and_position_and_character.1.1), led_e_color_and_position_and_character.0, led_e_color_and_position_and_character.1.2);
-        print!("\x1b[{};{}H\x1b[{}m{}", (row_origin + led_f_color_and_position_and_character.1.0) ,(col_origin + led_f_color_and_position_and_character.1.1), led_f_color_and_position_and_character.0, led_f_color_and_position_and_character.1.2);
-        print!("\x1b[{};{}H\x1b[{}m{}", (row_origin + led_g_color_and_position_and_character.1.0) ,(col_origin + led_g_color_and_position_and_character.1.1), led_g_color_and_position_and_character.0, led_g_color_and_position_and_character.1.2);
-
-    }*/
-
     pub fn on_arrival_of_next_signal(&mut self, nibbles_of_BCD: &Nibbles) -> () {
 
         self.led_a.flip_led(&nibbles_of_BCD.0);
@@ -175,9 +152,7 @@ impl DigitDisplayUnit {
         self.led_e.how_to_display()
     }
 
-    pub fn get_led_f(&self) -> &str {
-        self.led_f.how_to_display()
-    }
+    pub fn get_led_f(&self) -> &str { self.led_f.how_to_display() }
 
     pub fn get_led_g(&self) -> &str {
         self.led_g.how_to_display()
