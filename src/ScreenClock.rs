@@ -1,8 +1,8 @@
 #![allow(non_snake_case)]
 
 use std::io::{stdout, Write};
+use crate::DigitalDisplayUnit::{DigitDisplayUnit, Nibbles};
 
-use crate::{DigitDisplayUnit, Nibbles};
 
 //#[derive(Debug)]
 

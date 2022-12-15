@@ -5,13 +5,10 @@ use chrono::Local;
 use crossbeam::channel::{bounded};
 use crossbeam::{Receiver, select, tick};
 
-use crate::DigitalDisplayUnit::DigitDisplayUnit;
-use crate::DigitalDisplayUnit::Nibbles;
-
-
 mod ScreenClock;
-mod DigitalDisplayUnit;
 mod LedRepresentation;
+mod DigitalDisplayUnit;
+
 
 pub fn main() {
 
