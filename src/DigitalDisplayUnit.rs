@@ -3,8 +3,6 @@
 use crate::LedRepresentation::Led;
 pub struct Nibbles(pub u8);
 
-// https://www.electricaltechnology.org/2018/05/bcd-to-7-segment-display-decoder.html
-
 //#[derive(Debug)]
 
 const LED_A_GATE_LOGIC: fn(&u8) -> bool = | input: &u8 | {
@@ -181,8 +179,6 @@ mod tests {
         );
         let nibbles = Nibbles(0u8);
         digital_display_unit.on_arrival_of_next_signal(&nibbles);
-
-        // assert_eq!(DigitDisplayUnit::should_be_lit_led_g(&nibbles.0,&nibbles.1,&nibbles.2,&nibbles.3),false);
         assert_eq!(
             digital_display_unit.led_a.isOn()
                 && digital_display_unit.led_b.isOn()

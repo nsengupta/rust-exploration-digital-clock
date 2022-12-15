@@ -6,12 +6,6 @@ use crate::{DigitDisplayUnit, Nibbles};
 
 //#[derive(Debug)]
 
-// const CLOCK_ROW_0_FORMAT: &str = "   {}    {}    {}    {}";
-// const CLOCK_ROW_1_FORMAT: &str = "  {} {} {} {} {} {} {} {}";
-// const CLOCK_ROW_2_FORMAT: &str = "   {}    {}    {}    {}";
-// const CLOCK_ROW_3_FORMAT: &str = "  {} {} {} {} {} {} {} {}";
-// const CLOCK_ROW_4_FORMAT: &str = "   {}    {}    {}    {}";
-
 pub struct ScreenClock {
     top_left_row: u8,
     top_left_col: u8,

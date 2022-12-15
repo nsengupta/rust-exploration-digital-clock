@@ -1,5 +1,4 @@
 #![allow(non_snake_case)]
-//#[derive(Debug)]
 
 // Datatype that captures a Led
 pub struct Led {
