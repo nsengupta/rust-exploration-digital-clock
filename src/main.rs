@@ -26,7 +26,7 @@ pub fn main() {
 
         select! {
             recv(notification_on_next_second) -> _ => {
-                let time = read_clock_now()      // Current HH:MM:SS as a string
+                let hr_and_min_and_sec: Vec<u8> = read_clock_now()      // Current HH:MM:SS as a string
                 .chars()                         // An iterator of characters it contains
                 .filter( | c  | c != &':')       // Scrape the ':' character from the middle
                 .map(| c | c as u8 - '0' as u8)  // Get the numeric digit from ascii digit
@@ -43,7 +43,7 @@ pub fn main() {
                 )
                 .refresh();
 
-                print!("\x1b[7A");
+                // print!("\x1b[7A");
             }
 
             recv(ctrl_c_pressed) -> _ => {
@@ -71,3 +71,14 @@ fn read_clock_now() -> String {
     time_now
 }
 
+fn show_system_time(row: u8, col: u8, hh_1: u8, hh_2: u8, mm_1: u8, mm_2: u8, ss_1: u8, ss_2: u8) -> () {
+    print!("\x1b[{};{}H\x1b[1;33m{}{}:{}{}:{}{}",
+           row, col,
+           hh_1,
+           hh_2,
+           mm_1,
+           mm_2,
+           ss_1,
+           ss_2
+    );
+}

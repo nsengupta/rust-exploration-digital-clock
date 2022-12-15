@@ -1,5 +1,7 @@
 #![allow(non_snake_case)]
 
+use std::io::{stdout, Write};
+
 use crate::{DigitDisplayUnit, Nibbles};
 
 //#[derive(Debug)]
@@ -44,12 +46,12 @@ impl ScreenClock {
 
     pub fn on_next_second(&mut self, hh_1: u8, hh_2: u8, min_1: u8, min_2: u8, sec_1: u8, sec_2: u8) -> &mut ScreenClock {
 
-          // One DisplayUnit exists for each digit, and there are 6 digits!
-          let mins_and_secs_arrayfied: [u8;6] = [hh_1,hh_2,min_1,min_2,sec_1,sec_2];
-          for i in 0..6 {
-              self.display_units[i].on_arrival_of_next_signal(&Nibbles(mins_and_secs_arrayfied[i]));
-          }
-          self
+        // One DisplayUnit exists for each digit, and there are 6 digits!
+        let mins_and_secs_arrayfied: [u8;6] = [hh_1,hh_2,min_1,min_2,sec_1,sec_2];
+        for i in 0..6 {
+            self.display_units[i].on_arrival_of_next_signal(&Nibbles(mins_and_secs_arrayfied[i]));
+        }
+        self
 
     }
 
@@ -57,11 +59,13 @@ impl ScreenClock {
 
         let all_columns_of_row = self.prepare_clock_for_display();
 
-        print!("\x1b[{};{}H\x1b[1;33m{}", &self.top_left_row ,   &self.top_left_col , &all_columns_of_row[0]);
-        print!("\x1b[{};{}H\x1b[1;33m{}", &self.top_left_row +1, &self.top_left_col, all_columns_of_row[1]);
-        print!("\x1b[{};{}H\x1b[1;33m{}", &self.top_left_row +2, &self.top_left_col, all_columns_of_row[2]);
-        print!("\x1b[{};{}H\x1b[1;33m{}", &self.top_left_row +3, &self.top_left_col, all_columns_of_row[3]);
-        print!("\x1b[{};{}H\x1b[1;33m{}", &self.top_left_row +4, &self.top_left_col, all_columns_of_row[4]);
+        print!("\x1b[{};{}H\x1b[0K\x1b[1;33m{}", &self.top_left_row ,   &self.top_left_col , &all_columns_of_row[0]);
+        print!("\x1b[{};{}H\x1b[0K\x1b[1;33m{}", &self.top_left_row +1, &self.top_left_col,  &all_columns_of_row[1]);
+        print!("\x1b[{};{}H\x1b[0K\x1b[1;33m{}", &self.top_left_row +2, &self.top_left_col,  &all_columns_of_row[2]);
+        print!("\x1b[{};{}H\x1b[0K\x1b[1;33m{}", &self.top_left_row +3, &self.top_left_col,  &all_columns_of_row[3]);
+        print!("\x1b[{};{}H\x1b[0K\x1b[1;33m{}", &self.top_left_row +4, &self.top_left_col,  &all_columns_of_row[4]);
+
+        stdout().flush().unwrap();
 
         self
     }
@@ -120,4 +124,3 @@ impl ScreenClock {
     }
 
 }
-
